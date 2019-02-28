@@ -18,7 +18,7 @@ from rl.callbacks import FileLogger, ModelIntervalCheckpoint
 
 
 INPUT_SHAPE = (84, 84)
-WINDOW_LENGTH = 4
+WINDOW_LENGTH = 21
 
 
 class AtariProcessor(Processor):
@@ -70,7 +70,7 @@ model.add(Activation('relu'))
 model.add(Convolution2D(64, (3, 3), strides=(1, 1)))
 model.add(Activation('relu'))
 model.add(Flatten())
-model.add(Dense(512))
+model.add(Dense(8))
 model.add(Activation('relu'))
 model.add(Dense(nb_actions))
 model.add(Activation('linear'))
@@ -78,7 +78,7 @@ print(model.summary())
 
 # Finally, we configure and compile our agent. You can use every built-in Keras optimizer and
 # even the metrics!
-memory = SequentialMemory(limit=1000000, window_length=WINDOW_LENGTH)
+memory = SequentialMemory(limit=10000, window_length=WINDOW_LENGTH)
 processor = AtariProcessor()
 
 # Select a policy. We use eps-greedy action selection, which means that a random action is selected
