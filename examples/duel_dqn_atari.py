@@ -18,14 +18,17 @@ from rl.callbacks import FileLogger, ModelIntervalCheckpoint
 
 
 INPUT_SHAPE = (84, 84)
-WINDOW_LENGTH = 21
+WINDOW_LENGTH = 4
 
 
 class AtariProcessor(Processor):
     def process_observation(self, observation):
         assert observation.ndim == 3  # (height, width, channel)
-        img = Image.fromarray(observation)
+        img = Image.fromarray(observation[35:195])
         img = img.resize(INPUT_SHAPE).convert('L')  # resize and convert to grayscale
+        # img.show()
+        # import time
+        # time.sleep(1)
         processed_observation = np.array(img)
         assert processed_observation.shape == INPUT_SHAPE
         return processed_observation.astype('uint8')  # saves storage in experience memory
@@ -40,9 +43,10 @@ class AtariProcessor(Processor):
     def process_reward(self, reward):
         return np.clip(reward, -1., 1.)
 
+
 parser = argparse.ArgumentParser()
 parser.add_argument('--mode', choices=['train', 'test'], default='train')
-parser.add_argument('--env-name', type=str, default='BreakoutDeterministic-v4')
+parser.add_argument('--env-name', type=str, default='Pong-v0')
 parser.add_argument('--weights', type=str, default=None)
 args = parser.parse_args()
 
@@ -78,7 +82,7 @@ print(model.summary())
 
 # Finally, we configure and compile our agent. You can use every built-in Keras optimizer and
 # even the metrics!
-memory = SequentialMemory(limit=10000, window_length=WINDOW_LENGTH)
+memory = SequentialMemory(limit=1000000, window_length=WINDOW_LENGTH)
 processor = AtariProcessor()
 
 # Select a policy. We use eps-greedy action selection, which means that a random action is selected
@@ -107,7 +111,7 @@ if args.mode == 'train':
     checkpoint_weights_filename = 'dqn_' + args.env_name + '_weights_{step}.h5f'
     log_filename = 'dqn_{}_log.json'.format(args.env_name)
     callbacks = [ModelIntervalCheckpoint(checkpoint_weights_filename, interval=250000)]
-    callbacks += [FileLogger(log_filename, interval=100)]
+    callbacks += [FileLogger(log_filename, interval=1000)]
     dqn.fit(env, callbacks=callbacks, nb_steps=1750000, log_interval=10000)
 
     # After training is done, we save the final weights one more time.
